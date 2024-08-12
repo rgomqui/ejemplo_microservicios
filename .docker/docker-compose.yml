@@ -1,0 +1,56 @@
+services:
+  db:
+    container_name: employees_db
+    image: postgres:12.19
+    env_file: ../emp_control_backend/.docker/.env
+    restart: unless-stopped
+    volumes:
+      - ../src/main/resources/import.sql:/docker-entrypoint-initdb.d/import.sql
+    environment:
+      - POSTGRES_USER=employees_postgres
+      - POSTGRES_PASSWORD=P4ssW0rD_d3
+      - POSTGRES_DB=employees
+    ports:
+      - 5432:5432
+    networks:
+      - cloud-net
+
+  auth:
+    build:
+      context: ..
+      dockerfile: .docker/Dockerfile.backend.auth
+    deploy:
+      replicas: 3
+    image: auth-api:0.0.1
+    restart: unless-stopped
+    ports:
+      - 8081-8083:8080
+    depends_on:
+      - db
+    networks:
+      - cloud-net
+
+  registry-server:
+    build:
+      context: ..
+      dockerfile: .docker/Dockerfile.registry.server
+    deploy:
+      replicas: 1
+    image: registry-server:0.0.1
+    restart: unless-stopped
+    ports:
+      - 8761:8761
+    networks:
+      - cloud-net
+
+  adminer:
+    image: adminer
+    restart: always
+    ports:
+      - 8079:8080
+    networks:
+      - cloud-net
+
+networks:
+  cloud-net:
+    driver: bridge

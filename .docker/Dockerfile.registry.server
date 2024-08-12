@@ -1,0 +1,13 @@
+# FROM maven:3.9.7-amazoncorretto-21 AS build
+# WORKDIR /app
+# COPY ./registry-server/pom.xml .
+# COPY ./registry-server/src .
+# RUN mvn clean package -e -DskipTests
+
+FROM eclipse-temurin:21-jdk-alpine AS runner
+WORKDIR /app
+# COPY --from=build /app/target/*.jar backend.jar
+COPY ./emp_control_backend/target/*.jar registry-server.jar
+EXPOSE 8761
+ENTRYPOINT ["java", "-jar", "registry-server.jar"]
+# ENTRYPOINT ["sh", "-c", "while true; do sleep 3600; done"]
